@@ -1,0 +1,19 @@
+# Blueprint Render: bikin service otomatis dari repo ini.
+# Isi AI_API_URL dan AI_API_KEY di dashboard Render (sync: false, jangan ditaruh di sini).
+services:
+  - type: web
+    name: quezai-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: AI_API_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: glm-5.3
