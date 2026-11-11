@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuezAi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #050a14; --card: #111a2b; --card-edge: #1b2740;
+    --text: #f1f5f9; --muted: #94a3b8; --cyan: #22d3ee; --blue: #38bdf8; --teal: #14b8a6; --nav: #0a1120;
+  }
+  body { font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; background: #222; display: flex; justify-content: center; min-height: 100vh; }
+  .phone { width: 100%; max-width: 412px; min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; position: relative; transition: background .3s, color .3s; }
+  .phone.light { --bg: #eef3fb; --card: #ffffff; --card-edge: #d9e2f0; --text: #0f172a; --muted: #64748b; --nav: #ffffff; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 28px 22px 8px; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo svg { width: 46px; height: 46px; }
+  .logo-text { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-text span { background: linear-gradient(90deg, var(--blue), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .theme-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: var(--card); box-shadow: 0 6px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05); color: var(--cyan); font-size: 26px; cursor: pointer; display: grid; place-items: center; }
+  .screen { display: none; padding: 16px 22px 100px; flex: 1; }
+  .screen.active { display: block; }
+  .model-card { position: relative; height: 220px; border-radius: 28px; background: linear-gradient(160deg, #4f8cff 0%, #5b5bf0 45%, #7c3aed 100%); box-shadow: 0 14px 30px rgba(79,70,229,.35); padding: 24px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+  .model-card .label { font-size: 16px; color: rgba(255,255,255,.85); }
+  .model-card .model { font-size: 26px; font-weight: 700; color: #fff; margin-top: 4px; }
+  .model-card .bot { position: absolute; right: 22px; top: 40px; width: 150px; height: 130px; }
+  h3 { font-size: 20px; font-weight: 700; margin: 26px 0 14px; }
+  .menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .menu-item { height: 140px; border-radius: 22px; background: var(--card); border: 1px solid var(--card-edge); box-shadow: 0 10px 24px rgba(0,0,0,.25); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: pointer; color: var(--text); font-size: 16px; font-family: inherit; transition: transform .15s; }
+  .menu-item:active { transform: scale(.97); }
+  .icon-box { width: 62px; height: 62px; border-radius: 18px; display: grid; place-items: center; }
+  .icon-box.blue { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+  .icon-box.teal { background: linear-gradient(135deg, #14b8a6, #2dd4bf); }
+  .icon-box svg { width: 30px; height: 30px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .status { margin-top: 18px; font-size: 14px; color: var(--muted); min-height: 20px; }
+  .chat-box { border-radius: 22px; background: var(--card); border: 1px solid var(--card-edge); padding: 20px; min-height: 300px; font-size: 15px; color: var(--muted); }
+  .chat-input { position: fixed; bottom: 74px; left: 50%; transform: translateX(-50%); width: calc(100% - 44px); max-width: 368px; display: flex; gap: 10px; }
+  .chat-input input { flex: 1; padding: 14px 18px; border-radius: 16px; border: 1px solid var(--card-edge); background: var(--card); color: var(--text); font-size: 15px; outline: none; }
+  .chat-input button { padding: 0 18px; border: none; border-radius: 16px; background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: #fff; font-weight: 600; cursor: pointer; }
+  nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 412px; height: 70px; background: var(--nav); border-top: 1px solid var(--card-edge); display: flex; }
+  .nav-btn { flex: 1; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 13px; font-family: inherit; position: relative; }
+  .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.active { color: var(--cyan); }
+  .nav-btn.active::before { content: ""; position: absolute; top: 0; width: 50px; height: 3px; border-radius: 0 0 3px 3px; background: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 48 48">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#38bdf8"/>
+            <stop offset="1" stop-color="#22d3ee"/>
+          </linearGradient>
+        </defs>
+        <circle cx="22" cy="22" r="14" fill="none" stroke="url(#g)" stroke-width="6"/>
+        <path d="M30 30 L40 40" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+      <div class="logo-text">Quez<span>Ai</span></div>
+    </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Ganti tema">&#9788;</button>
+  </header>
+
+  <section class="screen active" id="home">
+    <div class="model-card">
+      <svg class="bot" viewBox="0 0 150 130">
+        <line x1="75" y1="6" x2="75" y2="20" stroke="#22d3ee" stroke-width="3"/>
+        <circle cx="75" cy="5" r="4" fill="#22d3ee"/>
+        <rect x="14" y="52" width="10" height="26" rx="4" fill="#22d3ee"/>
+        <rect x="126" y="52" width="10" height="26" rx="4" fill="#22d3ee"/>
+        <rect x="26" y="22" width="98" height="92" rx="30" fill="#0b1324" stroke="#67e8f9" stroke-width="5"/>
+        <rect x="38" y="36" width="74" height="64" rx="20" fill="#071a24" stroke="#14b8a6" stroke-width="2"/>
+        <circle cx="60" cy="66" r="8" fill="#22d3ee"/>
+        <circle cx="92" cy="66" r="8" fill="#22d3ee"/>
+      </svg>
+      <div class="label">Model AI</div>
+      <div class="model">glm-5.3</div>
+    </div>
+
+    <h3>Menu</h3>
+    <div class="menu">
+      <button class="menu-item" onclick="openChat()">
+        <div class="icon-box blue">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+        </div>
+        Chat AI
+      </button>
+      <button class="menu-item" onclick="checkServer()">
+        <div class="icon-box teal">
+          <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/></svg>
+        </div>
+        Cek server
+      </button>
+    </div>
+    <div class="status" id="serverStatus"></div>
+  </section>
+
+  <section class="screen" id="chat">
+    <h3 style="margin-top:6px">Chat AI</h3>
+    <div class="chat-box" id="chatBox">Mulai ngobrol sama AI pakai model glm-5.3.</div>
+  </section>
+
+  <div class="chat-input" id="chatInput" style="display:none">
+    <input id="msg" placeholder="Tulis pesan..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button onclick="sendMsg()">Kirim</button>
+  </div>
+
+  <nav>
+    <button class="nav-btn active" id="navHome" onclick="show('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+      Beranda
+    </button>
+    <button class="nav-btn" id="navChat" onclick="show('chat')">
+      <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+      Chat
+    </button>
+  </nav>
+</div>
+
+<script>
+  const phone = document.getElementById('phone');
+  const themeBtn = document.getElementById('themeBtn');
+
+  themeBtn.onclick = () => {
+    phone.classList.toggle('light');
+    themeBtn.innerHTML = phone.classList.contains('light') ? '&#9790;' : '&#9788;';
+  };
+
+  function show(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    document.getElementById('navHome').classList.toggle('active', name === 'home');
+    document.getElementById('navChat').classList.toggle('active', name === 'chat');
+    document.getElementById('chatInput').style.display = name === 'chat' ? 'flex' : 'none';
+  }
+
+  function openChat() { show('chat'); document.getElementById('msg').focus(); }
+
+  const esc = (s) => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  function checkServer() {
+    const el = document.getElementById('serverStatus');
+    el.textContent = 'Mengecek server...';
+    fetch('/api/health')
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        el.textContent = data.message || (r.ok ? 'Server online.' : 'Server lagi bermasalah.');
+      })
+      .catch(() => el.textContent = 'Nggak bisa nyambung ke server. Cek koneksimu ya.');
+  }
+
+  let history = [];
+  let busy = false;
+
+  // Kirim ke server. Retry cuma kalau koneksi putus (server belum kebaca).
+  async function askServer(messages) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.reply) return { reply: data.reply };
+        return { error: data.error || 'Ada gangguan, coba lagi ya.' };
+      } catch {
+        if (attempt < 2) await wait(1500);
+      }
+    }
+    return { error: 'Nggak bisa nyambung ke server. Cek koneksi internetmu, lalu coba lagi ya.' };
+  }
+
+  async function sendMsg() {
+    if (busy) return;
+    const input = document.getElementById('msg');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const box = document.getElementById('chatBox');
+    if (box.dataset.started !== '1') { box.innerHTML = ''; box.dataset.started = '1'; }
+    box.insertAdjacentHTML('beforeend', `<p style="margin-bottom:12px"><b>Kamu:</b> ${esc(text)}</p>`);
+    input.value = '';
+
+    const thinking = document.createElement('p');
+    thinking.style.marginBottom = '12px';
+    thinking.innerHTML = '<i>Lagi mikir...</i>';
+    box.appendChild(thinking);
+
+    busy = true;
+    history.push({ role: 'user', content: text });
+    const result = await askServer(history);
+    thinking.remove();
+
+    if (result.reply) {
+      history.push({ role: 'assistant', content: result.reply });
+      box.insertAdjacentHTML('beforeend', `<p style="margin-bottom:12px"><b>glm-5.3:</b> ${esc(result.reply)}</p>`);
+    } else {
+      history.pop();
+      input.value = text; // balikin teks biar gampang dikirim ulang
+      box.insertAdjacentHTML('beforeend', `<p style="margin-bottom:12px;color:#f87171">${esc(result.error)}</p>`);
+    }
+    box.scrollTop = box.scrollHeight;
+    busy = false;
+  }
+</script>
+</body>
+</html>
