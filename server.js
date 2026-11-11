@@ -17,7 +17,7 @@ app.use(express.static(".")); // nyajiin index.html
 // Setting untuk Gemini API (endpoint OpenAI-compatible dari Google AI Studio)
 const API_URL = process.env.AI_API_URL || "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const API_KEY = process.env.AI_API_KEY;
-const MODEL   = process.env.AI_MODEL || "gemini-2.5-flash";
+const MODEL   = process.env.AI_MODEL || "gemini-2.0-flash";
 
 const MAX_ATTEMPTS = 3;
 const TIMEOUT_MS = 20000;
